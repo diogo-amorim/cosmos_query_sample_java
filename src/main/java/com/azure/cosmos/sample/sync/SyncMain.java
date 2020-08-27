@@ -32,8 +32,10 @@ public class SyncMain {
 
     private CosmosClient client;
 
-    private final String databaseName = "AzureSampleFamilyDB";
-    private final String containerName = "FamilyContainer";
+    //private final String databaseName = "AzureSampleFamilyDB";
+    //private final String containerName = "FamilyContainer";
+    private final String databaseName = "track_and_trace";
+    private final String containerName = "track_events";
 
     private CosmosDatabase database;
     private CosmosContainer container;
@@ -54,7 +56,7 @@ public class SyncMain {
         try {
             System.out.println("Starting SYNC main");
             p.getStartedDemo();
-            System.out.println("Demo complete, please hold while resources are released");
+            System.out.println("Demo complete! please hold while resources are released");
         } catch (Exception e) {
             e.printStackTrace();
             System.err.println(String.format("Cosmos getStarted failed with %s", e));
@@ -77,26 +79,33 @@ public class SyncMain {
             .key(AccountSettings.MASTER_KEY)
             //  Setting the preferred location to Cosmos DB Account region
             //  West US is just an example. User should set preferred location to the Cosmos DB region closest to the application
-            .preferredRegions(Collections.singletonList("West US"))
+            .preferredRegions(Collections.singletonList("West Europe"))
             .consistencyLevel(ConsistencyLevel.EVENTUAL)
             .buildClient();
+        
+        database = client.getDatabase(databaseName);
+        System.out.println("Checking database " + database.getId() + " completed!\n");
+        container = database.getContainer(containerName);
+        System.out.println("Checking container " + container.getId() + " completed!\n");
+        
+        System.out.println("Oi xente!\n");
 
         //  </CreateSyncClient>
 
-        createDatabaseIfNotExists();
-        createContainerIfNotExists();
+       // createDatabaseIfNotExists();
+       // createContainerIfNotExists();
 
         //  Setup family items to create
-        ArrayList<Family> familiesToCreate = new ArrayList<>();
-        familiesToCreate.add(Families.getAndersenFamilyItem());
-        familiesToCreate.add(Families.getWakefieldFamilyItem());
-        familiesToCreate.add(Families.getJohnsonFamilyItem());
-        familiesToCreate.add(Families.getSmithFamilyItem());
+        //  ArrayList<Family> familiesToCreate = new ArrayList<>();
+        //  familiesToCreate.add(Families.getAndersenFamilyItem());
+        //  familiesToCreate.add(Families.getWakefieldFamilyItem());
+        //  familiesToCreate.add(Families.getJohnsonFamilyItem());
+        //  familiesToCreate.add(Families.getSmithFamilyItem());
 
-        createFamilies(familiesToCreate);
+        //  createFamilies(familiesToCreate);
 
-        System.out.println("Reading items.");
-        readItems(familiesToCreate);
+        //  System.out.println("Reading items.");
+        //  readItems(familiesToCreate);
 
         System.out.println("Querying items.");
         queryItems();
@@ -117,6 +126,8 @@ public class SyncMain {
     private void createContainerIfNotExists() throws Exception {
         System.out.println("Create container " + containerName + " if not exists.");
 
+        
+        
         //  Create container if not exists
         //  <CreateContainerIfNotExists>
         CosmosContainerProperties containerProperties =
@@ -184,19 +195,18 @@ public class SyncMain {
         queryOptions.setQueryMetricsEnabled(true);
 
         CosmosPagedIterable<Family> familiesPagedIterable = container.queryItems(
-            "SELECT * FROM Family WHERE Family.lastName IN ('Andersen', 'Wakefield', 'Johnson')", queryOptions, Family.class);
-
-        familiesPagedIterable.iterableByPage(10).forEach(cosmosItemPropertiesFeedResponse -> {
-            System.out.println("Got a page of query result with " +
-                cosmosItemPropertiesFeedResponse.getResults().size() + " items(s)"
-                + " and request charge of " + cosmosItemPropertiesFeedResponse.getRequestCharge());
-
-            System.out.println("Item Ids " + cosmosItemPropertiesFeedResponse
+            "SELECT * FROM Family", queryOptions, Family.class);
+        
+        familiesPagedIterable.iterableByPage(100).forEach(cosmosItemPropertiesFeedResponse -> {
+            
+            System.out.println("Found containers " + cosmosItemPropertiesFeedResponse
                 .getResults()
                 .stream()
                 .map(Family::getId)
                 .collect(Collectors.toList()));
+
         });
+        
         //  </QueryItems>
     }
 }
